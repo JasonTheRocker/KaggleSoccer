@@ -1,11 +1,12 @@
 import sqlite3
+import numpy as np
 from operator import itemgetter
 
 def getMatches():
 	conn = sqlite3.connect('database.sqlite')
         c = conn.cursor()
 	f = open('./matches.txt', 'w+')
-	res = c.execute("""SELECT * FROM match_data""")
+	res = c.execute("""SELECT * FROM match_data""").fetchall()
 	for row in res:
         	print >>f,  row
 	return res
@@ -14,7 +15,7 @@ def getPlayers():
         conn = sqlite3.connect('database.sqlite')
         c = conn.cursor()
         f = open('./players.txt', 'w+')
-	res = c.execute("""SELECT * FROM player_data""")
+	res = c.execute("""SELECT * FROM player_data""").fetchall()
         for row in res:
                 print >>f, row
 	return res
@@ -23,29 +24,59 @@ def getTeams():
         conn = sqlite3.connect('database.sqlite')
         c = conn.cursor()
         f = open('./teams.txt', 'w+')
-	res = c.execute("""SELECT * FROM team_data""")
+	res = c.execute("""SELECT * FROM team_data""").fetchall()
         for row in res:
                 print >>f, row
 	return res
 
-def getAtt(api_id, table, date_index, date):
-	st = sorted(table, key = itemgetter(date_index), reverse=True)
-	return st
+def getTeamAtt(table, api_id, date):
+	for r in table:
+		if (api_id == r[1] and date >= r[2]):
+			return r
+	return None
+
+def getPlayerAtt(table, api_id, date):
+	for r in table:
+		if (api_id == r[1] and date >= r[2]):
+			return r
+	return []
 
 
 def getFeatures():
-	genMatchData()
-        genPlayerData()
-        genTeamData()
+	#genMatchData()
+        #genPlayerData()
+        #genTeamData()
 
 	matches = getMatches()
 	players = getPlayers()
 	teams = getTeams()
-
-	st = getAtt(0, matches, 2, 0)
+	
+	
+	
+	sorted_teams = sorted(teams, key = itemgetter(2), reverse=True)
+	sorted_players = sorted(players, key = itemgetter(2), reverse=True)
+	
+	marray = matches
+	tarray = np.array(matches)
+	features = []
 	f = open('./st.txt', 'w+')
-        for row in st:
-                print >>f, row
+	
+	for i in marray:
+		players = ()
+		all_check = True
+		for p in range(56, 78):
+			ret = getPlayerAtt(sorted_players, int(i[56]), i[5])
+			ret = ret[3:]
+			if len(ret) > 0:
+				players = players + ret
+			else:
+				all_check = False
+				break
+		if all_check:
+			toadd = i + players
+			print >>f, toadd
+			features.append(toadd)
+	
 	
 	
 
