@@ -1,26 +1,53 @@
 import sqlite3
-
+from operator import itemgetter
 
 def getMatches():
 	conn = sqlite3.connect('database.sqlite')
         c = conn.cursor()
 	f = open('./matches.txt', 'w+')
-	for row in c.execute("""SELECT * FROM match_data"""):
+	res = c.execute("""SELECT * FROM match_data""")
+	for row in res:
         	print >>f,  row
+	return res
 
 def getPlayers():
         conn = sqlite3.connect('database.sqlite')
         c = conn.cursor()
         f = open('./players.txt', 'w+')
-        for row in c.execute("""SELECT * FROM player_data"""):
+	res = c.execute("""SELECT * FROM player_data""")
+        for row in res:
                 print >>f, row
+	return res
 
 def getTeams():
         conn = sqlite3.connect('database.sqlite')
         c = conn.cursor()
         f = open('./teams.txt', 'w+')
-        for row in c.execute("""SELECT * FROM team_data"""):
+	res = c.execute("""SELECT * FROM team_data""")
+        for row in res:
                 print >>f, row
+	return res
+
+def getAtt(api_id, table, date_index, date):
+	st = sorted(table, key = itemgetter(date_index), reverse=True)
+	return st
+
+
+def getFeatures():
+	genMatchData()
+        genPlayerData()
+        genTeamData()
+
+	matches = getMatches()
+	players = getPlayers()
+	teams = getTeams()
+
+	st = getAtt(0, matches, 2, 0)
+	f = open('./st.txt', 'w+')
+        for row in st:
+                print >>f, row
+	
+	
 
 def genMatchData():
 	conn = sqlite3.connect('database.sqlite')
@@ -79,10 +106,4 @@ def genTeamData():
 	WHERE """ + nullCheck)
 
 if __name__ == "__main__":
-	genMatchData()
-	genPlayerData()
-	genTeamData()
-	getMatches()
-	getPlayers()
-	getTeams()
-
+	getFeatures()
