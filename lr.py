@@ -1,59 +1,8 @@
 import numpy as np
 import tensorflow as tf
+import util as util
 
-f = open('FeaturesV1.txt', 'r')
-labels = []
-data = []
-line = f.readline()
-feature_size = len(line.split(",")) - 2
-
-def hlr(word):
-	new = word.replace("(","").replace(")","").replace("u'", "").replace("'", "").replace("00:00:00", "").replace("-","").replace("/","").strip()
-	try:
-		convert = float(new)
-	except ValueError:
-		if "high" in new:
-			convert = 1.0
-		elif "low" in new:
-			convert = -1.0
-		elif "le" in new:
-			convert = 1.0
-		elif "right" in new:
-			convert = -1.0
-		elif "None" in new:
-			convert = 0.0
-		elif "medium" in new:
-			convert = 0.0
-		elif "o" in new:
-			convert = 0.0
-		elif "y" in new:
-			convert = 1.0
-		elif "es" in new:
-			convert = 0.0
-		elif "ean" in new:
-			convert = 0.0
-		else:
-			print new
-			convert = new
-		
-	return convert
-
-while line != "":
-	array = line.split(",")
-	home = int(array[9].strip())
-	away = int(array[10].strip())
-	if home > away:
-		labels.append(1)
-	elif home == away:
-		labels.append(0)
-	else:
-		labels.append(-1)
-	array = map(hlr, array)
-	array.pop(9)
-	array.pop(10)
-	data.append(array)
-	line = f.readline()
-f.close()
+data, labels, feature_size = util.getDataAndLabelsV2()
 
 graph = tf.Graph()
 with graph.as_default():
