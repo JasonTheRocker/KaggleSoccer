@@ -5,13 +5,39 @@ import util as util
 data, labels = util.getDataAndLabels()
 num_features = len(data[0])
 
+n_hidden_1 = 256 # 1st layer number of features
+n_hidden_2 = 256 # 2nd layer number of features
+
 
 graph = tf.Graph()
 with graph.as_default():
+	
+	weights = {
+	    'h1': tf.Variable(tf.random_normal([num_features, n_hidden_1])),
+	    'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2])),
+	    'out': tf.Variable(tf.random_normal([n_hidden_2, 3]))
+	}
+	biases = {
+	    'b1': tf.Variable(tf.random_normal([n_hidden_1])),
+	    'b2': tf.Variable(tf.random_normal([n_hidden_2])),
+	    'out': tf.Variable(tf.random_normal([3]))
+	}
+	
+	def multilayer_perceptron(x, weights, biases):
+		# Hidden layer with RELU activation
+		layer_1 = tf.add(tf.matmul(x, weights['h1']), biases['b1'])
+		layer_1 = tf.nn.relu(layer_1)
+		# Hidden layer with RELU activation
+		layer_2 = tf.add(tf.matmul(layer_1, weights['h2']), biases['b2'])
+		layer_2 = tf.nn.relu(layer_2)
+		# Output layer with linear activation
+		out_layer = tf.matmul(layer_2, weights['out']) + biases['out']
+		return out_layer
+	
 	# parameters
 	beta = 0.001
-	theta = 0.01
-	batch_size = 100
+	theta = 0.001
+	batch_size = 25
 	valid_size = 2000
 	labels_size = len(labels)
 	valid_start_index = labels_size - 2 * valid_size
@@ -28,25 +54,15 @@ with graph.as_default():
 
 	W = tf.Variable(tf.zeros([num_features,3]))
 	b = tf.Variable(tf.zeros([3]))
-	
-	y = tf.matmul(x, W) + b
+
+	# Create model
+	y = multilayer_perceptron(x, weights, biases)	
+
 	
 	#cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_))
-	cross_entropy = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(y,y_))
-	regularized_loss = tf.nn.l2_loss(W)
-	total_loss = cross_entropy + beta * regularized_loss	
-	
-	train_step = tf.train.AdamOptimizer(theta).minimize(total_loss)	
+	cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_))
+	train_step = tf.train.AdamOptimizer(theta).minimize(cost)	
 
-
-
-	# optimizer
-	#optimizer = tf.train.GradientDescentOptimizer(theta).minimize(total_loss)
-
-	# predictions
-	#train_prediction = tf.nn.softmax(logits)
-	#valid_prediction = tf.nn.softmax(model(tf_valid_dataset))
-	#test_prediction = tf.nn.softmax(model(tf_test_dataset))
 
 
 num_steps = (labels_size - (2 * valid_size)) / batch_size
@@ -68,29 +84,24 @@ with tf.Session(graph=graph) as session:
 		feed_dict = {x : batch_data, y_ : batch_labels}
 		
 		#_, l, predictions = session.run([optimizer, loss, train_prediction], feed_dict=feed_dict)
-		_, l = session.run([train_step,total_loss], feed_dict=feed_dict)
+		_, l = session.run([train_step,cost], feed_dict=feed_dict)
 		
 		
 		
 		if (step % 10 == 0) :
 			#taccuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(train_prediction,1), tf.argmax(batch_labels,1)), "float"))
 			#vaccuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(valid_prediction,1), tf.argmax(tf_valid_labels,1)), "float"))
-			correct_prediction = tf.equal(tf.argmax(tf.sigmoid(y), 1), tf.argmax(y_, 1))
+			correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
 			accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 			print(session.run(accuracy, feed_dict={x: tf_valid_dataset,
 						              y_: tf_valid_labels}))
-			
-			prediction = tf.nn.softmax(y)
-			#print prediction.eval(feed_dict={x: tf_valid_dataset})	
-			prediction = y_
-			#print prediction.eval(feed_dict={x: tf_valid_dataset, y_: tf_valid_labels})			
-			
+
 			print("Minibatch loss at step %d: %f" % (step, l))
 			#print("Minibatch accuracy: %.lf%%" % accuracy(predictions, batch_labels.transpose()))
 			#print("Validation accuracy: %.lf%%" % accuracy(valid_prediction.eval(), np.array([tf_valid_labels.eval()])))
 	#prediction = tf.nn.softmax(y)
 	#print prediction.eval(feed_dict={x: tf_test_dataset})	
-	correct_prediction = tf.equal(tf.argmax(tf.sigmoid(y), 1), tf.argmax(y_, 1))
+	correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
 	accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 	print(session.run(accuracy, feed_dict={x: tf_test_dataset, y_: tf_test_labels}))	
 	#print("Test accuracy: %.lf%%" % accuracy(test_prediction.eval(), np.array([tf_test_labels.eval()])))
