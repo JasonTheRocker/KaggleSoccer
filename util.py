@@ -6,13 +6,15 @@ def replaceStrFeature(word):
 		convert = float(new)
 	except ValueError:
 		if "high" in new:
-			convert = 1.0
+			#convert = 1.0
+			convert = 100.0
 		elif "low" in new:
-			convert = -1.0
+			#convert = -1.0
+			convert = 50.0
 		elif "le" in new:
-			convert = 1.0
+			convert = 100.0
 		elif "right" in new:
-			convert = -1.0
+			convert = 50.0
 		elif "None" in new:
 			convert = 0.0
 		elif "medium" in new:
@@ -20,7 +22,7 @@ def replaceStrFeature(word):
 		elif "o" in new:
 			convert = 0.0
 		elif "y" in new:
-			convert = 1.0
+			convert = 100.0
 		elif "es" in new:
 			convert = 0.0
 		elif "ean" in new:
@@ -62,7 +64,9 @@ def getDataAndLabels():
 		for i in range(0, 10):
 			record.pop(0)	
 		for i in range(0, 22):
-			record.pop(0)			
+			record.pop(0)
+		for i in range(0, 22):
+			record.pop(0)		
 			
 		data.append(record)
 		line = f.readline()
