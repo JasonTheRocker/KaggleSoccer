@@ -49,20 +49,21 @@ def getDataAndLabels():
 		home = int(record[9].strip())
 		away = int(record[10].strip())
 		if home > away:
-			labels.append(1)
+			labels.append([float(1),float(0),float(0)])
 		elif home == away:
-			labels.append(0)
+			labels.append([float(0),float(1),float(0)])
 		else:
-			labels.append(-1)
+			labels.append([float(0),float(0),float(1)])
 		record = map(replaceStrFeature, record)
 		
 		# need to pop out player id, home, away, 
 		for i in range(56, 78):
 			record.pop(55)
-		record.pop(9)
-		record.pop(9)
-		record.pop(5)
-		record.pop(0)
+		for i in range(0, 10):
+			record.pop(0)	
+		for i in range(0, 22):
+			record.pop(0)			
+			
 		data.append(record)
 		line = f.readline()
 	f.close()
@@ -94,5 +95,8 @@ def getDataAndLabelsV2():
 
 
 if __name__ == "__main__":
-	data, labels = getDataAndLabelsV2()
+	data, labels = getDataAndLabels()
+	f = open('Label.txt', 'w+')
+	for i in labels:
+        	print >>f,  i	
 		
