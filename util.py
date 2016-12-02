@@ -61,7 +61,7 @@ def getDataAndLabels():
 		# need to pop out player id, home, away, 
 		for i in range(56, 78):
 			record.pop(55)
-		for i in range(0, 10):
+		for i in range(0, 11):
 			record.pop(0)	
 		for i in range(0, 22):
 			record.pop(0)
@@ -72,6 +72,13 @@ def getDataAndLabels():
 		line = f.readline()
 	f.close()
 	return data, labels
+
+def PCAreduce(data):
+	ret = []
+	for i in data:
+		b = [sum(i[current: current+40]) for current in xrange(0, len(i), 40)]
+		ret.append(b)
+	return ret
 
 def getDataAndLabelsV2():
 	f = open('FeaturesV2.txt', 'r')
